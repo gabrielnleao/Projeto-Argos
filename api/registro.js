@@ -12,6 +12,20 @@ if (process.env.DATABASE_URL) {
 
 export default async function handler(req, res) {
   // VERIFICAÇÃO DE SEGURANÇA
+  export default async function handler(req, res) {
+  // --- DEBUG: VERIFICAR A VARIÁVEL ---
+  console.log("Tentando conectar...");
+  console.log("DATABASE_URL existe?", !!process.env.DATABASE_URL); // Vai dizer true ou false
+  
+  // Se existir, mostre os 10 primeiros caracteres (seguro, não mostra a senha)
+  if (process.env.DATABASE_URL) {
+      console.log("Começo da URL:", process.env.DATABASE_URL.substring(0, 15));
+  } else {
+      console.log("ERRO CRÍTICO: A variável DATABASE_URL está vazia/undefined!");
+  }
+  // -----------------------------------
+
+  // ... resto do seu código ...
   if (!pool) {
     console.error("DATABASE_URL não encontrada!");
     return res.status(500).json({ 
