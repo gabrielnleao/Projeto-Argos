@@ -31,7 +31,11 @@ export default async function handler(req, res) {
         const result = await pool.query('SELECT * FROM Emergencia ORDER BY id_incidente DESC LIMIT 5');
         res.status(200).json(result.rows);
     } catch (error) {
-        res.status(500).json({ error: 'Erro ao ler banco' });
+        console.error(error); // Mostra no log da Vercel
+        res.status(500).json({ 
+            error: 'Erro ao ler banco', 
+            detalhes: error.message // <--- ISSO VAI MOSTRAR O MOTIVO REAL NA TELA
+        });
     }
   }
 }
