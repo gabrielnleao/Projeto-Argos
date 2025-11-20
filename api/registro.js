@@ -1,13 +1,25 @@
-// Arquivo: api/registro.js
 const { Pool } = require('pg');
 
-// Usa a URL que você pegou no Supabase (vamos configurar a variável depois)
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false } // Necessário para Supabase
-});
+let pool;
+
+// Só tenta conectar se a variável existir
+if (process.env.DATABASE_URL) {
+  pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    ssl: { rejectUnauthorized: false }
+  });
+}
 
 export default async function handler(req, res) {
+  // VERIFICAÇÃO DE SEGURANÇA
+  if (!pool) {
+    console.error("DATABASE_URL não encontrada!");
+    return res.status(500).json({ 
+      error: 'Erro de Configuração', 
+      detalhes: 'A variável DATABASE_URL não foi configurada corretamente na Vercel.' 
+    });
+  }
+  
   if (req.method === 'POST') {
     const { label, x, y } = req.body; // O ESP32 vai mandar isso
 
