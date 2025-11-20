@@ -1,67 +1,61 @@
 const { Pool } = require('pg');
 
-let pool;
+let pool = null;
 
-// Só tenta conectar se a variável existir
-if (process.env.DATABASE_URL) {
-  pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
-    ssl: { rejectUnauthorized: false }
-  });
+// Tenta iniciar o banco de forma segura
+try {
+  if (process.env.DATABASE_URL) {
+    pool = new Pool({
+      connectionString: process.env.DATABASE_URL,
+      ssl: { rejectUnauthorized: false }
+    });
+  } else {
+    console.log("⚠️ AVISO: A variável DATABASE_URL não foi encontrada no ambiente.");
+  }
+} catch (err) {
+  console.error("❌ Erro fatal ao iniciar o Pool do Postgres:", err);
 }
 
-export default async function handler(req, res) {
-  // VERIFICAÇÃO DE SEGURANÇA
-  export default async function handler(req, res) {
-  // --- DEBUG: VERIFICAR A VARIÁVEL ---
-  console.log("Tentando conectar...");
-  console.log("DATABASE_URL existe?", !!process.env.DATABASE_URL); // Vai dizer true ou false
+// --- AQUI ESTÁ A CORREÇÃO (module.exports) ---
+module.exports = async function handler(req, res) {
   
-  // Se existir, mostre os 10 primeiros caracteres (seguro, não mostra a senha)
-  if (process.env.DATABASE_URL) {
-      console.log("Começo da URL:", process.env.DATABASE_URL.substring(0, 15));
-  } else {
-      console.log("ERRO CRÍTICO: A variável DATABASE_URL está vazia/undefined!");
-  }
-  // -----------------------------------
-
-  // ... resto do seu código ...
+  // 1. DEBUG: Mostrar na tela se a variável existe
   if (!pool) {
-    console.error("DATABASE_URL não encontrada!");
-    return res.status(500).json({ 
-      error: 'Erro de Configuração', 
-      detalhes: 'A variável DATABASE_URL não foi configurada corretamente na Vercel.' 
+    return res.status(500).json({
+      erro: "Configuração Ausente",
+      mensagem: "O site não conseguiu ler a variável DATABASE_URL.",
+      dica: "Verifique em Settings > Environment Variables se o nome está exato e se fez Redeploy.",
+      debug_variavel_existe: !!process.env.DATABASE_URL 
     });
   }
-  
+
+  // 2. Se chegou aqui, o banco está configurado. Vamos tentar salvar.
   if (req.method === 'POST') {
-    const { label, x, y } = req.body; // O ESP32 vai mandar isso
+    const { label, x, y } = req.body;
 
     try {
-      // 1. Salva no Banco de Dados
       const query = 'INSERT INTO Emergencia (tipo_incidente, coordenada_x, coordenada_y) VALUES ($1, $2, $3)';
       const values = [label, x, y];
       
       await pool.query(query, values);
+      res.status(200).json({ message: 'Sucesso! Salvo no banco.' });
 
-      // 2. Responde para o ESP32
-      res.status(200).json({ message: 'Recebido e salvo na nuvem!' });
     } catch (error) {
-      console.error(error);
-      res.status(500).json({ error: 'Erro ao salvar no banco' });
+      console.error("Erro SQL:", error);
+      res.status(500).json({ error: "Erro ao salvar no banco", detalhes: error.message });
     }
   } else {
-    // Se o site tentar ler os dados (Polling)
+    // Método GET (Teste de leitura)
     try {
-        // Pega os últimos 5 registros
-        const result = await pool.query('SELECT * FROM Emergencia ORDER BY id_incidente DESC LIMIT 5');
-        res.status(200).json(result.rows);
+      const result = await pool.query('SELECT NOW()'); 
+      res.status(200).json({ 
+        status: "Online", 
+        hora_banco: result.rows[0],
+        mensagem: "Conexão com o banco está perfeita!" 
+      });
     } catch (error) {
-        console.error(error); // Mostra no log da Vercel
-        res.status(500).json({ 
-            error: 'Erro ao ler banco', 
-            detalhes: error.message // <--- ISSO VAI MOSTRAR O MOTIVO REAL NA TELA
-        });
+      console.error("Erro SQL:", error);
+      res.status(500).json({ error: "Erro ao ler do banco", detalhes: error.message });
     }
   }
-}
+};
