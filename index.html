@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Projeto ARGOS - Painel Operacional</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    
+    <nav class="sidebar">
+        <div class="sidebar-header">
+            <h3>Projeto ARGOS</h3>
+        </div>
+        <ul class="nav-links">
+            <li class="nav-item active">
+                <a href="#" data-target="page-dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+            </li>
+            <li class="nav-item">
+                <a href="#" data-target="page-mapa-viaturas"><i class="fas fa-map-marked-alt"></i> Mapa de Viaturas</a>
+            </li>
+            <li class="nav-item">
+                <a href="#" data-target="page-gravacoes"><i class="fas fa-video"></i> Gravações</a>
+            </li>
+        </ul>
+        <div class="status-operacional">
+            <p>Status: <span class="status-online">●</span> Operacional</p>
+            <p id="operador-info">Operador: Silva</p>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <header class="main-header">
+            <h2 id="header-title">Monitoramento em Tempo Real</h2>
+            <div class="operador-info-header">
+                <i class="fas fa-user-circle"></i>
+                <span>Operador Silva (ID: CPR-1247)</span>
+            </div>
+        </header>
+        
+        <div id="page-dashboard" class="page-content active">
+            <div id="mapa-container">
+                <canvas id="mapa-canvas" width="1000" height="700"></canvas>
+            </div>
+            <div id="painel-lateral">
+                <h3>Alertas Recentes</h3>
+                <ul id="lista-alertas">
+                    <li class="alerta-placeholder">Aguardando detecções...</li>
+                </ul>
+            </div>
+        </div>
+
+        <div id="page-mapa-viaturas" class="page-content">
+            <div class="mockup-container">
+                <h2>Página do Mapa de Viaturas</h2>
+                <p>Esta página mostraria um mapa GERAL (Google Maps, etc.) com todas as viaturas ativas.</p>
+                <img src="mockup-mapa.png" alt="Mockup de um mapa de viaturas" style="width: 100%; border-radius: 8px;">
+            </div>
+        </div>
+
+        <div id="page-gravacoes" class="page-content">
+            <div class="mockup-container">
+                <h2>Página de Histórico de Gravações</h2>
+                <p>Aqui ficaria a tabela com todas as gravações para análise e auditoria.</p>
+                <table class="mockup-table">
+                    <thead>
+                        <tr>
+                            <th>ID Gravação</th>
+                            <th>Tipo</th>
+                            <th>Localização</th>
+                            <th>Status</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>REC-001</td>
+                            <td><span class="tag-vermelho">Batida de Carro</span></td>
+                            <td>Av. Agamenon Magalhães</td>
+                            <td>Resolvido</td>
+                            <td><button>Ver</button></td>
+                        </tr>
+                        <tr>
+                            <td>REC-002</td>
+                            <td><span class="tag-laranja">Assalto</span></td>
+                            <td>Rua do Paissandú</td>
+                            <td>Resolvido</td>
+                            <td><button>Ver</button></td>
+                        </tr>
+                        <tr>
+                            <td>REC-003</td>
+                            <td><span class="tag-amarelo">Ativ. Suspeita</span></td>
+                            <td>Cruzamento X</td>
+                            <td>Descartado</td>
+                            <td><button>Ver</button></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <div id="modal-despacho-overlay" class="modal-overlay">
+        <div class="modal-content">
+            <button id="modal-close-btn" class="modal-close">&times;</button>
+            <div class="mockup-card">
+                <div class="mockup-video-feed">
+                    <span class="video-label">CAM-001 AO VIVO</span>
+                    <span class="alerta-tag" id="modal-alerta-tag">EMERGÊNCIA</span>
+                    <i class="fas fa-video video-icon"></i>
+                </div>
+                <div class="mockup-details">
+                    <h3>Detalhes da Emergência</h3>
+                    <p><strong>Tipo:</strong> <span id="modal-tipo">Batida de Carro</span></p>
+                    <p><strong>Localização:</strong> <span id="modal-localizacao">Av. Agamenon Magalhães</span></p>
+                    <p><strong>Status:</strong> <span id="modal-status">Aguardando Despacho</span></p>
+                    <button class="btn-despachar">Autorizar Despacho</button>
+                    <button class="btn-descartar">Descartar Alerta</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

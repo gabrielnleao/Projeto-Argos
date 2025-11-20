@@ -1,0 +1,266 @@
+/* --- 1. TEMA ESCURO E GERAL --- */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #0F172A; /* Fundo principal escuro */
+    color: #E2E8F0; /* Texto claro */
+    margin: 0;
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+}
+
+h1, h2, h3 {
+    color: #FFF;
+}
+
+/* --- 2. BARRA LATERAL (Sidebar) --- */
+.sidebar {
+    width: 260px;
+    background-color: #1E293B; /* Tom de azul mais escuro */
+    color: #cbd5e1;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 2px 0 10px rgba(0,0,0,0.3);
+}
+.sidebar-header {
+    padding: 20px;
+    text-align: center;
+    border-bottom: 1px solid #334155;
+}
+.sidebar-header h3 {
+    margin: 0;
+    font-size: 1.5em;
+    color: #fff;
+}
+.nav-links {
+    list-style: none;
+    padding: 20px 0;
+    margin: 0;
+    flex-grow: 1;
+}
+.nav-item a {
+    display: block;
+    padding: 15px 25px;
+    text-decoration: none;
+    color: #cbd5e1;
+    font-size: 1.1em;
+    transition: background-color 0.2s, color 0.2s;
+}
+.nav-item a i {
+    margin-right: 15px;
+}
+.nav-item a:hover {
+    background-color: #334155;
+    color: #fff;
+}
+.nav-item.active a {
+    background-color: #0F172A;
+    color: #3b82f6; /* Destaque azul */
+    border-right: 4px solid #3b82f6;
+}
+.status-operacional {
+    padding: 20px;
+    text-align: center;
+    border-top: 1px solid #334155;
+    font-size: 0.9em;
+}
+.status-online { color: #10b981; }
+#operador-info { margin-top: 10px; color: #94a3b8; }
+
+/* --- 3. CONTEÚDO PRINCIPAL (Área do Operador) --- */
+.main-content {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+}
+.main-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    background-color: #1E293B; /* Header escuro */
+    border-bottom: 1px solid #334155;
+}
+.operador-info-header {
+    display: flex;
+    align-items: center;
+    font-size: 1.1em;
+}
+.operador-info-header i {
+    font-size: 1.5em;
+    margin-right: 10px;
+}
+
+/* --- 4. LÓGICA DE NAVEGAÇÃO (Com a correção) --- */
+.page-content {
+    flex-grow: 1;
+    padding: 20px;
+    display: none; /* Esconde todas as páginas por padrão */
+    animation: fadeIn 0.3s;
+}
+.page-content.active {
+    display: flex; /* CORREÇÃO: Usa 'flex' para mostrar a página ativa */
+}
+/* O Dashboard tem um layout lado a lado */
+#page-dashboard.active {
+    flex-direction: row; /* Garante que o layout seja horizontal */
+    gap: 20px;
+}
+/* As outras páginas têm um layout de cima para baixo */
+#page-mapa-viaturas,
+#page-gravacoes {
+    flex-direction: column; /* Garante que o layout seja vertical */
+}
+
+
+/* --- 5. ESTILOS DO DASHBOARD (Mapa e Alertas) --- */
+#mapa-container {
+    flex-grow: 1;
+    background-color: #1E293B;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+}
+#mapa-canvas {
+    background-color: #4b5563; /* "Asfalto" escuro */
+    width: 100%;
+    height: 100%;
+    border-radius: 6px;
+}
+#painel-lateral {
+    width: 350px;
+    background-color: #1E293B;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+    display: flex;
+    flex-direction: column;
+}
+#lista-alertas {
+    list-style: none;
+    padding: 0;
+    margin-top: 15px;
+    flex-grow: 1;
+    overflow-y: auto;
+}
+.alerta-placeholder {
+    color: #888;
+    font-style: italic;
+    text-align: center;
+    margin-top: 50px;
+}
+#lista-alertas li {
+    padding: 15px; margin-bottom: 10px; border-radius: 5px;
+    font-weight: bold; border-left: 5px solid;
+    background-color: #334155;
+    cursor: pointer; /* Adiciona cursor de clique nos alertas */
+    transition: background-color 0.2s;
+}
+#lista-alertas li:hover {
+    background-color: #475569;
+}
+/* Cores dos Alertas */
+.alerta-vermelho { border-color: #b91c1c; color: #f87171; }
+.alerta-laranja { border-color: #d97706; color: #fb923c; }
+.alerta-roxo { border-color: #7e22ce; color: #c084fc; }
+.alerta-amarelo { border-color: #ca8a04; color: #facc15; }
+
+/* --- 6. ESTILOS DAS PÁGINAS MOCKUP --- */
+.mockup-container {
+    background-color: #1E293B;
+    padding: 30px;
+    border-radius: 8px;
+}
+.mockup-card {
+    display: flex;
+    gap: 20px;
+    background-color: #0F172A;
+    padding: 20px;
+    border-radius: 8px;
+}
+.mockup-video-feed {
+    width: 60%;
+    height: 400px;
+    background-color: #000;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    border-radius: 6px;
+    position: relative;
+}
+.video-icon { font-size: 100px; color: #444; }
+.video-label { position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.5); padding: 5px; }
+.alerta-tag { position: absolute; top: 10px; right: 10px; background: #b91c1c; padding: 5px; font-weight: bold; }
+.mockup-details { flex-grow: 1; }
+.btn-despachar {
+    background-color: #3b82f6; color: #fff; padding: 15px;
+    border: none; border-radius: 5px; font-size: 1.2em;
+    cursor: pointer; width: 100%; margin-top: 20px;
+}
+.mockup-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    font-size: 1.1em;
+}
+.mockup-table th, .mockup-table td {
+    padding: 15px;
+    text-align: left;
+    border-bottom: 1px solid #334155;
+}
+.mockup-table th { background-color: #334155; }
+.tag-vermelho { color: #f87171; font-weight: bold; }
+.tag-laranja { color: #fb923c; font-weight: bold; }
+.tag-amarelo { color: #facc15; font-weight: bold; }
+button { cursor: pointer; }
+
+/* --- 7. ESTILOS DO MODAL DE DESPACHO (O POPUP) --- */
+.modal-overlay {
+    /* Fica escondido por padrão */
+    display: none; 
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.75); /* Fundo escuro semi-transparente */
+    justify-content: center;
+    align-items: center;
+    z-index: 1000; /* Garante que fique na frente de tudo */
+    animation: fadeIn 0.3s;
+}
+.modal-overlay.active {
+    display: flex; /* Mostra o modal */
+}
+.modal-content {
+    background-color: #1E293B; /* Mesmo fundo escuro do painel */
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 5px 25px rgba(0,0,0,0.5);
+    width: 80%;
+    max-width: 1200px;
+    position: relative;
+}
+.modal-close {
+    position: absolute;
+    top: 10px;
+    right: 20px;
+    font-size: 2.5em;
+    color: #94a3b8;
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+.btn-descartar {
+    background-color: #64748B; /* Cor cinza para ação secundária */
+    color: #fff; padding: 15px;
+    border: none; border-radius: 5px; font-size: 1.2em;
+    cursor: pointer; width: 100%; margin-top: 10px;
+}
+
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
