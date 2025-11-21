@@ -1,62 +1,43 @@
-// --- 0. LÓGICA DE NAVEGAÇÃO DA PÁGINA ---
-
-// Pega todos os links da barra lateral e todas as "páginas"
+// --- 0. LÓGICA DE NAVEGAÇÃO (Mantida igual) ---
 const navLinks = document.querySelectorAll('.nav-item a');
 const pages = document.querySelectorAll('.page-content');
 const headerTitle = document.getElementById('header-title');
 
-// Adiciona um 'click listener' em cada link da barra lateral
 navLinks.forEach(link => {
     link.addEventListener('click', (e) => {
-        e.preventDefault(); // Impede que o link recarregue a página
-
+        e.preventDefault();
         const targetId = link.getAttribute('data-target');
         const targetPage = document.getElementById(targetId);
-        
-        // Se a página alvo não existir (ex: link quebrado), não faz nada
         if (!targetPage) return;
-
         headerTitle.textContent = link.textContent;
-
-        // Remove a classe 'active' de todos os links e páginas
         navLinks.forEach(navLink => navLink.parentElement.classList.remove('active'));
         pages.forEach(page => page.classList.remove('active'));
-
-        // Adiciona a classe 'active' apenas no link clicado e na página alvo
         link.parentElement.classList.add('active');
         targetPage.classList.add('active');
     });
 });
 
-
-// --- 1. CONFIGURAÇÃO INICIAL (Lógica do Mapa/ESP32) ---
-
-// Conecta ao nosso "servidor-ponte" (que ainda vamos criar)
-const socket = io();
-
-// Pega os elementos do HTML que vamos usar
+// --- 1. CONFIGURAÇÃO INICIAL ---
 const canvas = document.getElementById('mapa-canvas');
-const ctx = canvas.getContext('2d'); // O "pincel" para desenhar no mapa
+const ctx = canvas.getContext('2d');
 const listaAlertas = document.getElementById('lista-alertas');
 
-// --- Pega os elementos do MODAL ---
+// Elementos do Modal
 const modalOverlay = document.getElementById('modal-despacho-overlay');
 const modalCloseBtn = document.getElementById('modal-close-btn');
 const modalTipo = document.getElementById('modal-tipo');
 const modalLocalizacao = document.getElementById('modal-localizacao');
 const modalAlertaTag = document.getElementById('modal-alerta-tag');
 
-// Dicionário de Cores (para desenhar no canvas)
 const DICIONARIO_CORES = {
-    'vermelho': '#b91c1c', // Batida de Carro
-    'laranja':  '#d97706', // Assalto
-    'roxo':     '#7e22ce', // Briga
-    'amarelo':  '#ca8a04', // Atividade Suspeita
-    'azul':     '#3b82f6', // Viatura
-    'verde':    '#10b981'  // Civil
+    'vermelho': '#b91c1c',
+    'laranja':  '#d97706',
+    'roxo':     '#7e22ce',
+    'amarelo':  '#ca8a04',
+    'azul':     '#3b82f6',
+    'verde':    '#10b981'
 };
 
-// Dicionário de Nomes (para o painel de alertas)
 const DICIONARIO_NOMES = {
     'vermelho': 'INCIDENTE GRAVE: Batida de Carro',
     'laranja':  'CRIME VIOLENTO: Assalto',
@@ -64,51 +45,83 @@ const DICIONARIO_NOMES = {
     'amarelo':  'ALERTA: Atividade Suspeita'
 };
 
-// --- 2. LÓGICA PRINCIPAL (Lógica do Mapa/ESP32) ---
+// --- 2. NOVA LÓGICA: BUSCAR DADOS DO BANCO (POLLING) ---
 
-// Esta função "ouve" a mensagem 'detections' que o nosso servidor-ponte (Node.js) vai enviar.
-socket.on('detections', (deteccoes) => {
-    // 1. Limpa o mapa para o próximo "frame"
+async function buscarDados() {
+    try {
+        // Pede para a API os últimos registros
+        const response = await fetch('/api/registro');
+        const dadosDoBanco = await response.json();
+
+        if (Array.isArray(dadosDoBanco)) {
+            atualizarTela(dadosDoBanco);
+        }
+    } catch (error) {
+        console.error("Erro ao buscar dados:", error);
+    }
+}
+
+// Chama a função buscarDados a cada 2 segundos (2000ms)
+setInterval(buscarDados, 2000);
+
+// --- 3. ATUALIZAR A TELA ---
+
+function atualizarTela(dados) {
     limparMapa();
+    
+    // Limpa a lista de alertas antiga para não duplicar
+    // (Ou mantém apenas se quiser histórico, aqui vamos limpar para simplificar o real-time)
+    listaAlertas.innerHTML = ''; 
 
-    // 2. Processa a lista de objetos que a IA detectou
-    let viaturas = []; // Armazena as viaturas para o cálculo de rota
-    let alertas = [];   // Armazena os incidentes para o cálculo de rota
+    let viaturas = []; 
+    let alertas = [];   
 
+    // O banco retorna colunas: tipo_incidente, coordenada_x, coordenada_y
+    // Precisamos converter para o formato que usamos: label, x, y
+    const deteccoes = dados.map(item => ({
+        label: item.tipo_incidente,
+        x: item.coordenada_x,
+        y: item.coordenada_y,
+        id: item.id_incidente // Importante para identificar
+    }));
+
+    // Como o banco traz histórico, vamos pegar apenas os mais recentes para desenhar
+    // (Aqui você pode ajustar a lógica para mostrar só o último segundo, etc.)
+    // Por simplicidade, vamos desenhar o que veio da API (últimos 10)
+    
     for (const det of deteccoes) {
         const cor = DICIONARIO_CORES[det.label] || '#FFFFFF'; 
         
-        // Desenha o pino no mapa
+        // Desenha no mapa
         desenharPino(det.x, det.y, cor, det.label);
 
-        // Separa o que é alerta e o que é viatura
+        // Lógica de Alerta vs Viatura
         if (DICIONARIO_NOMES[det.label]) {
-            dispararAlerta(det.label, { x: det.x, y: det.y });
-            alertas.push({ x: det.x, y: det.y });
+            criarItemAlerta(det.label, { x: det.x, y: det.y });
+            alertas.push(det);
         } else if (det.label === 'azul') {
-            viaturas.push({ x: det.x, y: det.y });
+            viaturas.push(det);
         }
     }
 
-    // 3. Calcula a rota se houver um alerta e uma viatura
+    // Calcula rota (pega o alerta mais recente, que é o primeiro da lista do banco)
     if (alertas.length > 0 && viaturas.length > 0) {
+        // Se não tiver viatura real detectada, cria uma fixa para demonstração (opcional)
+        // viaturas.push({x: 50, y: 50}); 
         calcularRota(alertas[0], viaturas); 
     }
-});
-
-// Limpa o placeholder de "Aguardando detecções..."
-socket.on('connect', () => {
-    const placeholder = document.querySelector('.alerta-placeholder');
-    if (placeholder) {
-        placeholder.remove();
+    
+    // Remove o placeholder se tiver dados
+    if (deteccoes.length > 0) {
+        const placeholder = document.querySelector('.alerta-placeholder');
+        if (placeholder) placeholder.remove();
     }
-});
+}
 
-
-// --- 3. FUNÇÕES AUXILIARES E LÓGICA DO MODAL ---
+// --- 4. FUNÇÕES AUXILIARES ---
 
 function limparMapa() {
-    ctx.fillStyle = '#4b5563'; // Cor de "asfalto"
+    ctx.fillStyle = '#4b5563'; 
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 }
 
@@ -117,38 +130,27 @@ function desenharPino(x, y, cor, label) {
     ctx.beginPath();
     ctx.arc(x, y, 10, 0, 2 * Math.PI); 
     ctx.fill();
-
-    // Escreve a etiqueta (opcional)
     ctx.fillStyle = '#FFF';
     ctx.font = '10px Arial';
     ctx.fillText(label, x + 15, y + 5);
 }
 
-function dispararAlerta(label, localizacao) {
+function criarItemAlerta(label, localizacao) {
     const nomeAlerta = DICIONARIO_NOMES[label];
     const corAlerta = label; 
 
-    // Checa se o alerta já existe (para não floodar)
-    const idAlerta = `alerta-${label}-${localizacao.x}-${localizacao.y}`;
-    if (document.getElementById(idAlerta)) {
-        return; // Alerta já está na lista
-    }
-
     const itemAlerta = document.createElement('li');
-    itemAlerta.id = idAlerta;
     itemAlerta.className = `alerta-${corAlerta}`; 
     itemAlerta.textContent = `${nomeAlerta} [${localizacao.x}, ${localizacao.y}]`;
     
-    // Adiciona o "listener" de clique para abrir o modal
     itemAlerta.addEventListener('click', () => {
         abrirModalDeDespacho(nomeAlerta, localizacao, corAlerta);
     });
 
-    listaAlertas.prepend(itemAlerta);
+    listaAlertas.appendChild(itemAlerta);
 }
 
 function calcularRota(alerta, viaturas) {
-    // 1. Encontra a viatura mais próxima (matemática simples de distância)
     let viaturaMaisProxima = null;
     let menorDistancia = Infinity;
 
@@ -160,9 +162,8 @@ function calcularRota(alerta, viaturas) {
         }
     }
 
-    // 2. Desenha a linha de rota no canvas
     if (viaturaMaisProxima) {
-        ctx.strokeStyle = '#3b82f6'; // Linha da rota azul
+        ctx.strokeStyle = '#3b82f6'; 
         ctx.lineWidth = 4;
         ctx.beginPath();
         ctx.moveTo(viaturaMaisProxima.x, viaturaMaisProxima.y);
@@ -171,15 +172,11 @@ function calcularRota(alerta, viaturas) {
     }
 }
 
-// --- NOVAS FUNÇÕES DO MODAL ---
-
 function abrirModalDeDespacho(nome, localizacao, cor) {
-    // 1. Preenche o modal com os dados do alerta clicado
-    modalTipo.textContent = nome.split(': ')[1]; // Ex: "Batida de Carro"
+    const partesNome = nome.split(': ');
+    modalTipo.textContent = partesNome[1] || nome; 
     modalLocalizacao.textContent = `Maquete Coordenadas: [${localizacao.x}, ${localizacao.y}]`;
-    modalAlertaTag.textContent = nome.split(':')[0]; // Ex: "INCIDENTE GRAVE"
-    
-    // 2. Mostra o modal
+    modalAlertaTag.textContent = partesNome[0] || "ALERTA"; 
     modalOverlay.classList.add('active');
 }
 
@@ -187,12 +184,7 @@ function fecharModalDeDespacho() {
     modalOverlay.classList.remove('active');
 }
 
-// Adiciona o evento para fechar o modal no botão "X"
 modalCloseBtn.addEventListener('click', fecharModalDeDespacho);
-
-// (Opcional) Fecha o modal se clicar fora dele
 modalOverlay.addEventListener('click', (e) => {
-    if (e.target === modalOverlay) {
-        fecharModalDeDespacho();
-    }
+    if (e.target === modalOverlay) fecharModalDeDespacho();
 });
