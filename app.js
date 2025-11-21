@@ -24,7 +24,7 @@ const listaAlertas = document.getElementById('lista-alertas');
 
 // Carrega a imagem do mapa (fundo)
 const imagemMapa = new Image();
-imagemMapa.src = 'fundo-mapa.png'; // Certifique-se de que o arquivo está na mesma pasta
+imagemMapa.src = 'fundo-mapa.jpg'; // Certifique-se de que o arquivo está na mesma pasta
 
 // Elementos do Modal
 const modalOverlay = document.getElementById('modal-despacho-overlay');
