@@ -1,37 +1,42 @@
 /* --- 1. TEMA ESCURO E GERAL --- */
 body {
-    font-family: Arial, sans-serif;
-    background-color: #0F172A; /* Fundo principal escuro */
-    color: #E2E8F0; /* Texto claro */
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* Fonte mais moderna */
+    background-color: #0F172A; 
+    color: #E2E8F0; 
     margin: 0;
     display: flex;
-    height: 100vh;
-    overflow: hidden;
+    min-height: 100vh; /* Permite que a página cresça */
+    /* REMOVIDO: overflow: hidden; -> Agora a página pode rolar! */
 }
 
 h1, h2, h3 {
     color: #FFF;
 }
 
-/* --- 2. BARRA LATERAL (Sidebar) --- */
+/* --- 2. BARRA LATERAL (Sidebar Fixa) --- */
 .sidebar {
     width: 260px;
-    background-color: #1E293B; /* Tom de azul mais escuro */
+    background-color: #1E293B; 
     color: #cbd5e1;
     display: flex;
     flex-direction: column;
     box-shadow: 2px 0 10px rgba(0,0,0,0.3);
+    
+    /* ISSO FAZ A BARRA FICAR FIXA ENQUANTO VOCÊ ROLA O RESTO */
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    z-index: 100;
 }
+
 .sidebar-header {
     padding: 20px;
     text-align: center;
     border-bottom: 1px solid #334155;
 }
-.sidebar-header h3 {
-    margin: 0;
-    font-size: 1.5em;
-    color: #fff;
-}
+.sidebar-header h3 { margin: 0; font-size: 1.5em; color: #fff; }
+
 .nav-links {
     list-style: none;
     padding: 20px 0;
@@ -46,16 +51,11 @@ h1, h2, h3 {
     font-size: 1.1em;
     transition: background-color 0.2s, color 0.2s;
 }
-.nav-item a i {
-    margin-right: 15px;
-}
-.nav-item a:hover {
-    background-color: #334155;
-    color: #fff;
-}
+.nav-item a i { margin-right: 15px; }
+.nav-item a:hover { background-color: #334155; color: #fff; }
 .nav-item.active a {
     background-color: #0F172A;
-    color: #3b82f6; /* Destaque azul */
+    color: #3b82f6; 
     border-right: 4px solid #3b82f6;
 }
 .status-operacional {
@@ -67,200 +67,220 @@ h1, h2, h3 {
 .status-online { color: #10b981; }
 #operador-info { margin-top: 10px; color: #94a3b8; }
 
-/* --- 3. CONTEÚDO PRINCIPAL (Área do Operador) --- */
+/* --- 3. CONTEÚDO PRINCIPAL (Com margem para não ficar atrás da sidebar) --- */
 .main-content {
     flex-grow: 1;
     display: flex;
     flex-direction: column;
+    margin-left: 260px; /* Empurra o conteúdo para a direita por causa da sidebar fixa */
+    width: calc(100% - 260px);
 }
+
 .main-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 20px;
-    background-color: #1E293B; /* Header escuro */
+    padding: 20px 40px; /* Mais espaçamento lateral */
+    background-color: #1E293B; 
     border-bottom: 1px solid #334155;
+    position: sticky; /* O cabeçalho fica fixo no topo quando rola */
+    top: 0;
+    z-index: 90;
 }
-.operador-info-header {
-    display: flex;
-    align-items: center;
-    font-size: 1.1em;
-}
-.operador-info-header i {
-    font-size: 1.5em;
-    margin-right: 10px;
-}
+.operador-info-header { display: flex; align-items: center; font-size: 1.1em; }
+.operador-info-header i { font-size: 1.5em; margin-right: 10px; }
 
-/* --- 4. LÓGICA DE NAVEGAÇÃO (Com a correção) --- */
+/* --- 4. LÓGICA DE NAVEGAÇÃO --- */
 .page-content {
-    flex-grow: 1;
-    padding: 20px;
-    display: none; /* Esconde todas as páginas por padrão */
+    padding: 30px; /* Mais respiro */
+    display: none; 
     animation: fadeIn 0.3s;
 }
-.page-content.active {
-    display: flex; /* CORREÇÃO: Usa 'flex' para mostrar a página ativa */
-}
-/* O Dashboard tem um layout lado a lado */
+.page-content.active { display: flex; }
+
 #page-dashboard.active {
-    flex-direction: row; /* Garante que o layout seja horizontal */
-    gap: 20px;
+    flex-direction: row; 
+    gap: 30px;
+    flex-wrap: wrap; /* Permite quebrar linha se a tela for pequena */
+    justify-content: center; /* Centraliza o conteúdo */
 }
-/* As outras páginas têm um layout de cima para baixo */
-#page-mapa-viaturas,
-#page-gravacoes {
-    flex-direction: column; /* Garante que o layout seja vertical */
-}
+#page-mapa-viaturas, #page-gravacoes { flex-direction: column; }
 
 
 /* --- 5. ESTILOS DO DASHBOARD (Mapa e Alertas) --- */
+
+/* LIMITANDO O MAPA E ALERTAS */
 #mapa-container {
-    flex-grow: 1;
+    flex: 1;
+    min-width: 600px; /* Largura mínima */
     background-color: #1E293B;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+    padding: 15px;
+    border-radius: 12px;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+    
+    /* AQUI ESTÁ O LIMITE DE ALTURA QUE VOCÊ PEDIU */
+    height: 650px; 
 }
+
 #mapa-canvas {
-    background-color: #4b5563; /* "Asfalto" escuro */
+    background-color: #1E293B; 
     width: 100%;
     height: 100%;
-    border-radius: 6px;
+    border-radius: 8px;
+    object-fit: contain; /* Garante que a imagem não distorça */
 }
+
 #painel-lateral {
     width: 350px;
     background-color: #1E293B;
     padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+    border-radius: 12px;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
     display: flex;
     flex-direction: column;
+    
+    /* LIMITE DE ALTURA IGUAL AO MAPA */
+    height: 650px; 
 }
+
 #lista-alertas {
     list-style: none;
     padding: 0;
     margin-top: 15px;
     flex-grow: 1;
-    overflow-y: auto;
+    overflow-y: auto; /* Barra de rolagem interna só para os alertas */
+    padding-right: 5px; /* Espaço para a barra de rolagem não colar */
 }
+
+/* Estilizando a barra de rolagem dos alertas para ficar bonita */
+#lista-alertas::-webkit-scrollbar { width: 8px; }
+#lista-alertas::-webkit-scrollbar-track { background: #0F172A; }
+#lista-alertas::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
+#lista-alertas::-webkit-scrollbar-thumb:hover { background: #64748B; }
+
 .alerta-placeholder {
-    color: #888;
+    color: #64748B;
     font-style: italic;
     text-align: center;
     margin-top: 50px;
 }
+
 #lista-alertas li {
-    padding: 15px; margin-bottom: 10px; border-radius: 5px;
-    font-weight: bold; border-left: 5px solid;
+    padding: 15px; margin-bottom: 12px; border-radius: 6px;
+    font-weight: 600; border-left: 6px solid;
     background-color: #334155;
-    cursor: pointer; /* Adiciona cursor de clique nos alertas */
-    transition: background-color 0.2s;
+    cursor: pointer; 
+    transition: transform 0.2s, background-color 0.2s;
+    font-size: 0.95em;
 }
 #lista-alertas li:hover {
     background-color: #475569;
+    transform: translateX(5px); /* Efeito visual ao passar o mouse */
 }
+
 /* Cores dos Alertas */
-.alerta-vermelho { border-color: #b91c1c; color: #f87171; }
-.alerta-laranja { border-color: #d97706; color: #fb923c; }
-.alerta-roxo { border-color: #7e22ce; color: #c084fc; }
-.alerta-amarelo { border-color: #ca8a04; color: #facc15; }
+.alerta-vermelho { border-color: #ef4444; color: #fca5a5; }
+.alerta-laranja { border-color: #f97316; color: #fdba74; }
+.alerta-roxo { border-color: #a855f7; color: #d8b4fe; }
+.alerta-amarelo { border-color: #eab308; color: #fde047; }
 
 /* --- 6. ESTILOS DAS PÁGINAS MOCKUP --- */
 .mockup-container {
     background-color: #1E293B;
-    padding: 30px;
-    border-radius: 8px;
+    padding: 40px;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
 }
 .mockup-card {
     display: flex;
-    gap: 20px;
+    gap: 30px;
     background-color: #0F172A;
-    padding: 20px;
-    border-radius: 8px;
+    padding: 30px;
+    border-radius: 12px;
+    align-items: flex-start;
 }
 .mockup-video-feed {
     width: 60%;
-    height: 400px;
+    height: 350px;
     background-color: #000;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    border-radius: 6px;
+    border-radius: 8px;
     position: relative;
+    border: 1px solid #334155;
 }
-.video-icon { font-size: 100px; color: #444; }
-.video-label { position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.5); padding: 5px; }
-.alerta-tag { position: absolute; top: 10px; right: 10px; background: #b91c1c; padding: 5px; font-weight: bold; }
+.video-icon { font-size: 80px; color: #334155; }
+.video-label { position: absolute; top: 15px; left: 15px; background: rgba(0,0,0,0.7); padding: 5px 10px; border-radius: 4px; font-size: 0.9em;}
+.alerta-tag { position: absolute; top: 15px; right: 15px; background: #ef4444; padding: 5px 10px; font-weight: bold; border-radius: 4px; font-size: 0.9em;}
 .mockup-details { flex-grow: 1; }
+.mockup-details h3 { margin-top: 0; color: #3b82f6; }
 .btn-despachar {
     background-color: #3b82f6; color: #fff; padding: 15px;
-    border: none; border-radius: 5px; font-size: 1.2em;
+    border: none; border-radius: 8px; font-size: 1.1em; font-weight: bold;
     cursor: pointer; width: 100%; margin-top: 20px;
+    transition: background-color 0.2s;
 }
+.btn-despachar:hover { background-color: #2563eb; }
+
+/* Tabelas */
 .mockup-table {
     width: 100%;
-    border-collapse: collapse;
+    border-collapse: separate;
+    border-spacing: 0;
     margin-top: 20px;
-    font-size: 1.1em;
+    font-size: 1em;
 }
-.mockup-table th, .mockup-table td {
-    padding: 15px;
-    text-align: left;
-    border-bottom: 1px solid #334155;
+.mockup-table th { background-color: #0F172A; padding: 15px; text-align: left; border-bottom: 2px solid #334155; color: #94a3b8; }
+.mockup-table td { padding: 15px; border-bottom: 1px solid #334155; }
+.mockup-table tr:hover td { background-color: #334155; }
+.mockup-table button {
+    padding: 8px 16px; background-color: transparent; border: 1px solid #475569; 
+    color: #cbd5e1; border-radius: 6px; cursor: pointer; transition: all 0.2s;
 }
-.mockup-table th { background-color: #334155; }
-.tag-vermelho { color: #f87171; font-weight: bold; }
-.tag-laranja { color: #fb923c; font-weight: bold; }
-.tag-amarelo { color: #facc15; font-weight: bold; }
-button { cursor: pointer; }
+.mockup-table button:hover { background-color: #3b82f6; border-color: #3b82f6; color: white; }
 
-/* --- 7. ESTILOS DO MODAL DE DESPACHO (O POPUP) --- */
+.tag-vermelho { color: #fca5a5; background: rgba(239, 68, 68, 0.2); padding: 4px 8px; border-radius: 4px; font-size: 0.9em; }
+.tag-laranja { color: #fdba74; background: rgba(249, 115, 22, 0.2); padding: 4px 8px; border-radius: 4px; font-size: 0.9em; }
+.tag-amarelo { color: #fde047; background: rgba(234, 179, 8, 0.2); padding: 4px 8px; border-radius: 4px; font-size: 0.9em; }
+
+/* --- 7. ESTILOS DO MODAL DE DESPACHO --- */
 .modal-overlay {
-    /* Fica escondido por padrão */
     display: none; 
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.75); /* Fundo escuro semi-transparente */
-    justify-content: center;
-    align-items: center;
-    z-index: 1000; /* Garante que fique na frente de tudo */
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background-color: rgba(0, 0, 0, 0.85); 
+    justify-content: center; align-items: center;
+    z-index: 1000; 
     animation: fadeIn 0.3s;
+    backdrop-filter: blur(5px); /* Efeito de desfoque no fundo */
 }
-.modal-overlay.active {
-    display: flex; /* Mostra o modal */
-}
+.modal-overlay.active { display: flex; }
 .modal-content {
-    background-color: #1E293B; /* Mesmo fundo escuro do painel */
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 5px 25px rgba(0,0,0,0.5);
-    width: 80%;
-    max-width: 1200px;
+    background-color: #1E293B; 
+    padding: 0; /* Padding removido aqui pois o card interno já tem */
+    border-radius: 16px;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.4);
+    width: 90%;
+    max-width: 1000px;
     position: relative;
+    overflow: hidden;
+    border: 1px solid #334155;
 }
 .modal-close {
-    position: absolute;
-    top: 10px;
-    right: 20px;
-    font-size: 2.5em;
-    color: #94a3b8;
-    background: none;
-    border: none;
-    cursor: pointer;
+    position: absolute; top: 15px; right: 20px;
+    font-size: 2em; color: #94a3b8;
+    background: none; border: none; cursor: pointer; z-index: 10;
+    transition: color 0.2s;
 }
+.modal-close:hover { color: #fff; }
 .btn-descartar {
-    background-color: #64748B; /* Cor cinza para ação secundária */
-    color: #fff; padding: 15px;
-    border: none; border-radius: 5px; font-size: 1.2em;
+    background-color: transparent; border: 1px solid #475569;
+    color: #cbd5e1; padding: 15px;
+    border-radius: 8px; font-size: 1.1em; font-weight: bold;
     cursor: pointer; width: 100%; margin-top: 10px;
+    transition: all 0.2s;
 }
+.btn-descartar:hover { background-color: #334155; color: #fff; }
 
-
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-}
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
