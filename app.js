@@ -1,4 +1,4 @@
-// --- 0. LÓGICA DE NAVEGAÇÃO (Mantida igual) ---
+// --- 0. LÓGICA DE NAVEGAÇÃO DA PÁGINA ---
 const navLinks = document.querySelectorAll('.nav-item a');
 const pages = document.querySelectorAll('.page-content');
 const headerTitle = document.getElementById('header-title');
@@ -21,6 +21,10 @@ navLinks.forEach(link => {
 const canvas = document.getElementById('mapa-canvas');
 const ctx = canvas.getContext('2d');
 const listaAlertas = document.getElementById('lista-alertas');
+
+// Carrega a imagem do mapa (fundo)
+const imagemMapa = new Image();
+imagemMapa.src = 'fundo-mapa.png'; // Certifique-se de que o arquivo está na mesma pasta
 
 // Elementos do Modal
 const modalOverlay = document.getElementById('modal-despacho-overlay');
@@ -67,28 +71,22 @@ setInterval(buscarDados, 2000);
 // --- 3. ATUALIZAR A TELA ---
 
 function atualizarTela(dados) {
-    limparMapa();
+    limparMapa(); // Limpa e desenha o fundo do mapa
     
     // Limpa a lista de alertas antiga para não duplicar
-    // (Ou mantém apenas se quiser histórico, aqui vamos limpar para simplificar o real-time)
     listaAlertas.innerHTML = ''; 
 
     let viaturas = []; 
     let alertas = [];   
 
-    // O banco retorna colunas: tipo_incidente, coordenada_x, coordenada_y
-    // Precisamos converter para o formato que usamos: label, x, y
+    // Converte os dados do banco para o formato do app
     const deteccoes = dados.map(item => ({
         label: item.tipo_incidente,
         x: item.coordenada_x,
         y: item.coordenada_y,
-        id: item.id_incidente // Importante para identificar
+        id: item.id_incidente 
     }));
 
-    // Como o banco traz histórico, vamos pegar apenas os mais recentes para desenhar
-    // (Aqui você pode ajustar a lógica para mostrar só o último segundo, etc.)
-    // Por simplicidade, vamos desenhar o que veio da API (últimos 10)
-    
     for (const det of deteccoes) {
         const cor = DICIONARIO_CORES[det.label] || '#FFFFFF'; 
         
@@ -104,10 +102,8 @@ function atualizarTela(dados) {
         }
     }
 
-    // Calcula rota (pega o alerta mais recente, que é o primeiro da lista do banco)
+    // Calcula rota (pega o alerta mais recente)
     if (alertas.length > 0 && viaturas.length > 0) {
-        // Se não tiver viatura real detectada, cria uma fixa para demonstração (opcional)
-        // viaturas.push({x: 50, y: 50}); 
         calcularRota(alertas[0], viaturas); 
     }
     
@@ -121,18 +117,37 @@ function atualizarTela(dados) {
 // --- 4. FUNÇÕES AUXILIARES ---
 
 function limparMapa() {
-    ctx.fillStyle = '#4b5563'; 
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    // Desenha a imagem do mapa esticada para caber no canvas
+    // Se a imagem ainda não carregou, ele pinta de cinza como fallback
+    if (imagemMapa.complete) {
+        ctx.drawImage(imagemMapa, 0, 0, canvas.width, canvas.height);
+        
+        // Sombra escura para destacar os ícones (opcional)
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+    } else {
+        ctx.fillStyle = '#4b5563'; 
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
 }
 
 function desenharPino(x, y, cor, label) {
     ctx.fillStyle = cor;
+    
+    // Efeito de "brilho" no pino
+    ctx.shadowBlur = 10;
+    ctx.shadowColor = cor;
+    
     ctx.beginPath();
-    ctx.arc(x, y, 10, 0, 2 * Math.PI); 
+    ctx.arc(x, y, 12, 0, 2 * Math.PI); // Pino um pouco maior (raio 12)
     ctx.fill();
+    
+    // Remove o brilho para o texto
+    ctx.shadowBlur = 0;
+
     ctx.fillStyle = '#FFF';
-    ctx.font = '10px Arial';
-    ctx.fillText(label, x + 15, y + 5);
+    ctx.font = 'bold 12px Arial';
+    ctx.fillText(label.toUpperCase(), x + 18, y + 5);
 }
 
 function criarItemAlerta(label, localizacao) {
@@ -163,12 +178,17 @@ function calcularRota(alerta, viaturas) {
     }
 
     if (viaturaMaisProxima) {
+        // Desenha a linha da rota
         ctx.strokeStyle = '#3b82f6'; 
-        ctx.lineWidth = 4;
+        ctx.lineWidth = 5;
+        ctx.setLineDash([10, 5]); // Linha pontilhada para parecer rota de GPS
+        
         ctx.beginPath();
         ctx.moveTo(viaturaMaisProxima.x, viaturaMaisProxima.y);
         ctx.lineTo(alerta.x, alerta.y);
         ctx.stroke();
+        
+        ctx.setLineDash([]); // Reseta linha normal
     }
 }
 
@@ -177,6 +197,10 @@ function abrirModalDeDespacho(nome, localizacao, cor) {
     modalTipo.textContent = partesNome[1] || nome; 
     modalLocalizacao.textContent = `Maquete Coordenadas: [${localizacao.x}, ${localizacao.y}]`;
     modalAlertaTag.textContent = partesNome[0] || "ALERTA"; 
+    
+    // Ajusta a cor da tag do modal
+    modalAlertaTag.style.backgroundColor = DICIONARIO_CORES[cor] || '#b91c1c';
+    
     modalOverlay.classList.add('active');
 }
 
